@@ -45,6 +45,18 @@ namespace client {
     _episode.Lock()->SetWeatherParameters(weather);
   }
 
+  WorldSnapshot World::GetSnapshot() const {
+    return _episode.Lock()->GetWorldSnapshot();
+  }
+
+  SharedPtr<Actor> World::GetActor(ActorId id) const {
+    auto simulator = _episode.Lock();
+    auto description = simulator->GetActorById(id);
+    return description.has_value() ?
+        simulator->MakeActor(std::move(*description)) :
+        nullptr;
+  }
+
   SharedPtr<ActorList> World::GetActors() const {
     return SharedPtr<ActorList>{new ActorList{
                                   _episode,
@@ -60,26 +72,28 @@ namespace client {
   SharedPtr<Actor> World::SpawnActor(
       const ActorBlueprint &blueprint,
       const geom::Transform &transform,
-      Actor *parent_actor) {
-    return _episode.Lock()->SpawnActor(blueprint, transform, parent_actor);
+      Actor *parent_actor,
+      rpc::AttachmentType attachment_type) {
+    return _episode.Lock()->SpawnActor(blueprint, transform, parent_actor, attachment_type);
   }
 
   SharedPtr<Actor> World::TrySpawnActor(
       const ActorBlueprint &blueprint,
       const geom::Transform &transform,
-      Actor *parent_actor) noexcept {
+      Actor *parent_actor,
+      rpc::AttachmentType attachment_type) noexcept {
     try {
-      return SpawnActor(blueprint, transform, parent_actor);
+      return SpawnActor(blueprint, transform, parent_actor, attachment_type);
     } catch (const std::exception &e) {
       return nullptr;
     }
   }
 
-  Timestamp World::WaitForTick(time_duration timeout) const {
+  WorldSnapshot World::WaitForTick(time_duration timeout) const {
     return _episode.Lock()->WaitForTick(timeout);
   }
 
-  void World::OnTick(std::function<void(Timestamp)> callback) {
+  void World::OnTick(std::function<void(WorldSnapshot)> callback) {
     return _episode.Lock()->RegisterOnTickEvent(std::move(callback));
   }
 

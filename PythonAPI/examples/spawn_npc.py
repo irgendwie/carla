@@ -57,6 +57,11 @@ def main():
         '--safe',
         action='store_true',
         help='avoid spawning vehicles prone to accidents')
+    argparser.add_argument(
+        '--filter',
+        metavar='PATTERN',
+        default='vehicle.*',
+        help='actor filter (default: "vehicle.*")')
     args = argparser.parse_args()
 
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
@@ -68,7 +73,7 @@ def main():
     try:
 
         world = client.get_world()
-        blueprints = world.get_blueprint_library().filter('vehicle.*')
+        blueprints = world.get_blueprint_library().filter(args.filter)
 
         if args.safe:
             blueprints = [x for x in blueprints if int(x.get_attribute('number_of_wheels')) == 4]
@@ -98,6 +103,9 @@ def main():
             if blueprint.has_attribute('color'):
                 color = random.choice(blueprint.get_attribute('color').recommended_values)
                 blueprint.set_attribute('color', color)
+            if blueprint.has_attribute('driver_id'):
+                driver_id = random.choice(blueprint.get_attribute('driver_id').recommended_values)
+                blueprint.set_attribute('driver_id', driver_id)
             blueprint.set_attribute('role_name', 'autopilot')
             batch.append(SpawnActor(blueprint, transform).then(SetAutopilot(FutureActor, True)))
 

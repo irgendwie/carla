@@ -12,6 +12,7 @@
 #include "carla/geom/Transform.h"
 #include "carla/rpc/Actor.h"
 #include "carla/rpc/ActorDefinition.h"
+#include "carla/rpc/AttachmentType.h"
 #include "carla/rpc/Command.h"
 #include "carla/rpc/CommandResponse.h"
 #include "carla/rpc/EpisodeInfo.h"
@@ -49,8 +50,6 @@ namespace detail {
 
   /// Provides communication with the rpc and streaming servers of a CARLA
   /// simulator.
-  ///
-  /// @todo Make sure this class is really thread-safe.
   class Client : private NonCopyable {
   public:
 
@@ -107,7 +106,8 @@ namespace detail {
     rpc::Actor SpawnActorWithParent(
         const rpc::ActorDescription &description,
         const geom::Transform &transform,
-        rpc::ActorId parent);
+        rpc::ActorId parent,
+        rpc::AttachmentType attachment_type);
 
     bool DestroyActor(rpc::ActorId actor);
 

@@ -19,7 +19,7 @@ namespace carla {
 namespace client {
 
   static geom::Location Rotate(float yaw, const geom::Location &location) {
-    yaw *= geom::Math::pi() / 180.0f;
+    yaw *= geom::Math::Pi<float>() / 180.0f;
     const float c = std::cos(yaw);
     const float s = std::sin(yaw);
     return {
@@ -62,10 +62,10 @@ namespace client {
     log_debug(GetDisplayId(), ": subscribing to tick event");
     GetEpisode().Lock()->RegisterOnTickEvent([
         cb=std::move(callback),
-        weak_self=WeakPtr<LaneInvasionSensor>(self)](const auto &timestamp) {
+        weak_self=WeakPtr<LaneInvasionSensor>(self)](const auto &snapshot) {
       auto self = weak_self.lock();
       if (self != nullptr) {
-        auto data = self->TickLaneInvasionSensor(timestamp);
+        auto data = self->TickLaneInvasionSensor(snapshot.GetTimestamp());
         if (data != nullptr) {
           cb(std::move(data));
         }

@@ -67,6 +67,36 @@ public:
   UFUNCTION(BlueprintCallable)
   float GetFOVAngle() const;
 
+  UFUNCTION(BlueprintCallable)
+  void SetTargetGamma(float InTargetGamma)
+  {
+    TargetGamma = InTargetGamma;
+  }
+
+  UFUNCTION(BlueprintCallable)
+  float GetTargetGamma() const
+  {
+    return TargetGamma;
+  }
+
+  UFUNCTION(BlueprintCallable)
+  void SetMotionBlurIntensity(float Intensity);
+
+  UFUNCTION(BlueprintCallable)
+  float GetMotionBlurIntensity() const;
+
+  UFUNCTION(BlueprintCallable)
+  void SetMotionBlurMaxDistortion(float MaxDistortion);
+
+  UFUNCTION(BlueprintCallable)
+  float GetMotionBlurMaxDistortion() const;
+
+  UFUNCTION(BlueprintCallable)
+  void SetMotionBlurMinObjectScreenSize(float ScreenSize);
+
+  UFUNCTION(BlueprintCallable)
+  float GetMotionBlurMinObjectScreenSize() const;
+
   /// Use for debugging purposes only.
   UFUNCTION(BlueprintCallable)
   bool ReadPixels(TArray<FColor> &BitMap) const
@@ -85,8 +115,6 @@ public:
 
 protected:
 
-  virtual void PostActorCreated() override;
-
   virtual void BeginPlay() override;
 
   virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -94,10 +122,6 @@ protected:
   virtual void SetUpSceneCaptureComponent(USceneCaptureComponent2D &SceneCapture) {}
 
 private:
-
-  /// Used to synchronize the DrawFrustumComponent with the
-  /// SceneCaptureComponent2D settings.
-  void UpdateDrawFrustum();
 
   /// Image width in pixels.
   UPROPERTY(EditAnywhere)
@@ -111,6 +135,9 @@ private:
   UPROPERTY(EditAnywhere)
   bool bEnablePostProcessingEffects = true;
 
+  UPROPERTY(EditAnywhere)
+  float TargetGamma = 2.2f;
+
   /// Render target necessary for scene capture.
   UPROPERTY(EditAnywhere)
   UTextureRenderTarget2D *CaptureRenderTarget = nullptr;
@@ -118,12 +145,4 @@ private:
   /// Scene capture component.
   UPROPERTY(EditAnywhere)
   USceneCaptureComponent2D *CaptureComponent2D = nullptr;
-
-  /// To display the 3d camera in the editor.
-  UPROPERTY()
-  UStaticMeshComponent *MeshComp = nullptr;
-
-  /// To allow drawing the camera frustum in the editor.
-  UPROPERTY()
-  UDrawFrustumComponent *DrawFrustum = nullptr;
 };

@@ -14,6 +14,8 @@
 #include "carla/client/TrafficLight.h"
 #include "carla/client/Vehicle.h"
 #include "carla/client/Walker.h"
+#include "carla/client/WorldSnapshot.h"
+#include "carla/client/detail/ActorFactory.h"
 #include "carla/client/detail/Client.h"
 #include "carla/client/detail/Episode.h"
 #include "carla/client/detail/EpisodeProxy.h"
@@ -33,8 +35,6 @@ namespace client {
 namespace detail {
 
   /// Connects and controls a CARLA Simulator.
-  ///
-  /// @todo Make sure this class is really thread-safe.
   class Simulator
     : public std::enable_shared_from_this<Simulator>,
       private profiler::LifetimeProfiled,
@@ -77,6 +77,17 @@ namespace detail {
     }
 
     EpisodeProxy GetCurrentEpisode();
+
+    /// @}
+    // =========================================================================
+    /// @name World snapshot
+    // =========================================================================
+    /// @{
+
+    WorldSnapshot GetWorldSnapshot() const {
+      DEBUG_ASSERT(_episode != nullptr);
+      return WorldSnapshot{_episode->GetState()};
+    }
 
     /// @}
     // =========================================================================
@@ -124,9 +135,9 @@ namespace detail {
     // =========================================================================
     /// @{
 
-    Timestamp WaitForTick(time_duration timeout);
+    WorldSnapshot WaitForTick(time_duration timeout);
 
-    void RegisterOnTickEvent(std::function<void(Timestamp)> callback) {
+    void RegisterOnTickEvent(std::function<void(WorldSnapshot)> callback) {
       DEBUG_ASSERT(_episode != nullptr);
       _episode->RegisterOnTickEvent(std::move(callback));
     }
@@ -171,6 +182,11 @@ namespace detail {
     // =========================================================================
     /// @{
 
+    boost::optional<rpc::Actor> GetActorById(ActorId id) const {
+      DEBUG_ASSERT(_episode != nullptr);
+      return _episode->GetActorById(id);
+    }
+
     std::vector<rpc::Actor> GetActorsById(const std::vector<ActorId> &actor_ids) const {
       DEBUG_ASSERT(_episode != nullptr);
       return _episode->GetActorsById(actor_ids);
@@ -181,33 +197,53 @@ namespace detail {
       return _episode->GetActors();
     }
 
+    /// Creates an actor instance out of a description of an existing actor.
+    /// Note that this does not spawn an actor.
+    ///
     /// If @a gc is GarbageCollectionPolicy::Enabled, the shared pointer
     /// returned is provided with a custom deleter that calls Destroy() on the
-    /// actor. If @gc is GarbageCollectionPolicy::Enabled, the default garbage
+    /// actor. This method does not support GarbageCollectionPolicy::Inherit.
+    SharedPtr<Actor> MakeActor(
+        rpc::Actor actor_description,
+        GarbageCollectionPolicy gc = GarbageCollectionPolicy::Disabled) {
+      RELEASE_ASSERT(gc != GarbageCollectionPolicy::Inherit);
+      return ActorFactory::MakeActor(GetCurrentEpisode(), std::move(actor_description), gc);
+    }
+
+    /// Spawns an actor into the simulation.
+    ///
+    /// If @a gc is GarbageCollectionPolicy::Enabled, the shared pointer
+    /// returned is provided with a custom deleter that calls Destroy() on the
+    /// actor. If @gc is GarbageCollectionPolicy::Inherit, the default garbage
     /// collection policy is used.
     SharedPtr<Actor> SpawnActor(
         const ActorBlueprint &blueprint,
         const geom::Transform &transform,
         Actor *parent = nullptr,
+        rpc::AttachmentType attachment_type = rpc::AttachmentType::Rigid,
         GarbageCollectionPolicy gc = GarbageCollectionPolicy::Inherit);
 
     bool DestroyActor(Actor &actor);
 
-    auto GetActorDynamicState(const Actor &actor) const {
+    ActorSnapshot GetActorSnapshot(ActorId actor_id) const {
       DEBUG_ASSERT(_episode != nullptr);
-      return _episode->GetState()->GetActorState(actor.GetId());
+      return _episode->GetState()->GetActorSnapshot(actor_id);
+    }
+
+    ActorSnapshot GetActorSnapshot(const Actor &actor) const {
+      return GetActorSnapshot(actor.GetId());
     }
 
     geom::Location GetActorLocation(const Actor &actor) const {
-      return GetActorDynamicState(actor).transform.location;
+      return GetActorSnapshot(actor).transform.location;
     }
 
     geom::Transform GetActorTransform(const Actor &actor) const {
-      return GetActorDynamicState(actor).transform;
+      return GetActorSnapshot(actor).transform;
     }
 
     geom::Vector3D GetActorVelocity(const Actor &actor) const {
-      return GetActorDynamicState(actor).velocity;
+      return GetActorSnapshot(actor).velocity;
     }
 
     void SetActorVelocity(const Actor &actor, const geom::Vector3D &vector) {
@@ -215,7 +251,7 @@ namespace detail {
     }
 
     geom::Vector3D GetActorAngularVelocity(const Actor &actor) const {
-      return GetActorDynamicState(actor).angular_velocity;
+      return GetActorSnapshot(actor).angular_velocity;
     }
 
     void SetActorAngularVelocity(const Actor &actor, const geom::Vector3D &vector) {
@@ -227,7 +263,7 @@ namespace detail {
     }
 
     geom::Vector3D GetActorAcceleration(const Actor &actor) const {
-      return GetActorDynamicState(actor).acceleration;
+      return GetActorSnapshot(actor).acceleration;
     }
 
     void SetActorLocation(Actor &actor, const geom::Location &location) {
@@ -371,7 +407,7 @@ namespace detail {
 
     std::shared_ptr<Episode> _episode;
 
-    GarbageCollectionPolicy _gc_policy;
+    const GarbageCollectionPolicy _gc_policy;
   };
 
 } // namespace detail

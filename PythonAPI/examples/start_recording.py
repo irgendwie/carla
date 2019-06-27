@@ -79,8 +79,7 @@ def main():
         world = client.get_world()
         blueprints = world.get_blueprint_library().filter('vehicle.*')
 
-        # @todo Needs to be converted to list to be shuffled.
-        spawn_points = list(world.get_map().get_spawn_points())
+        spawn_points = world.get_map().get_spawn_points()
         random.shuffle(spawn_points)
 
         print('found %d spawn points.' % len(spawn_points))
@@ -138,7 +137,7 @@ def main():
     finally:
 
         print('\ndestroying %d actors' % len(actor_list))
-        client.apply_batch([carla.command.DestroyActor(x) for x in actor_list])
+        client.apply_batch_sync([carla.command.DestroyActor(x) for x in actor_list])
 
         print("Stop recording")
         client.stop_recorder()

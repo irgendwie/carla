@@ -10,9 +10,11 @@
 #include "carla/Time.h"
 #include "carla/client/DebugHelper.h"
 #include "carla/client/Timestamp.h"
+#include "carla/client/WorldSnapshot.h"
 #include "carla/client/detail/EpisodeProxy.h"
 #include "carla/geom/Transform.h"
 #include "carla/rpc/Actor.h"
+#include "carla/rpc/AttachmentType.h"
 #include "carla/rpc/EpisodeSettings.h"
 #include "carla/rpc/VehiclePhysicsControl.h"
 #include "carla/rpc/WeatherParameters.h"
@@ -63,6 +65,12 @@ namespace client {
     /// Change the weather in the simulation.
     void SetWeather(const rpc::WeatherParameters &weather);
 
+    /// Return a snapshot of the world at this moment.
+    WorldSnapshot GetSnapshot() const;
+
+    /// Find actor by id, return nullptr if not found.
+    SharedPtr<Actor> GetActor(ActorId id) const;
+
     /// Return a list with all the actors currently present in the world.
     SharedPtr<ActorList> GetActors() const;
 
@@ -75,20 +83,22 @@ namespace client {
     SharedPtr<Actor> SpawnActor(
         const ActorBlueprint &blueprint,
         const geom::Transform &transform,
-        Actor *parent = nullptr);
+        Actor *parent = nullptr,
+        rpc::AttachmentType attachment_type = rpc::AttachmentType::Rigid);
 
     /// Same as SpawnActor but return nullptr on failure instead of throwing an
     /// exception.
     SharedPtr<Actor> TrySpawnActor(
         const ActorBlueprint &blueprint,
         const geom::Transform &transform,
-        Actor *parent = nullptr) noexcept;
+        Actor *parent = nullptr,
+        rpc::AttachmentType attachment_type = rpc::AttachmentType::Rigid) noexcept;
 
     /// Block calling thread until a world tick is received.
-    Timestamp WaitForTick(time_duration timeout) const;
+    WorldSnapshot WaitForTick(time_duration timeout) const;
 
     /// Register a @a callback to be called every time a world tick is received.
-    void OnTick(std::function<void(Timestamp)> callback);
+    void OnTick(std::function<void(WorldSnapshot)> callback);
 
     /// Signal the simulator to continue to next tick (only has effect on
     /// synchronous mode).

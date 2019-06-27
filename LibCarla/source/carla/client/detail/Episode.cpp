@@ -57,7 +57,7 @@ namespace detail {
         auto prev = self->GetState();
         do {
           if (prev->GetFrameCount() >= next->GetFrameCount()) {
-            self->_on_tick_callbacks.Call(next->GetTimestamp());
+            self->_on_tick_callbacks.Call(next);
             return;
           }
         } while (!self->_state.compare_exchange(&prev, next));
@@ -67,10 +67,22 @@ namespace detail {
         }
 
         // Notify waiting threads and do the callbacks.
-        self->_timestamp.SetValue(next->GetTimestamp());
-        self->_on_tick_callbacks.Call(next->GetTimestamp());
+        self->_snapshot.SetValue(next);
+        self->_on_tick_callbacks.Call(next);
       }
     });
+  }
+
+  boost::optional<rpc::Actor> Episode::GetActorById(ActorId id) {
+    auto actor = _actors.GetActorById(id);
+    if (!actor.has_value()) {
+      auto actor_list = _client.GetActorsById({id});
+      if (!actor_list.empty()) {
+        actor = std::move(actor_list.front());
+        _actors.Insert(*actor);
+      }
+    }
+    return actor;
   }
 
   std::vector<rpc::Actor> Episode::GetActorsById(const std::vector<ActorId> &actor_ids) {

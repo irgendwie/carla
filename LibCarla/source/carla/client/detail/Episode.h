@@ -10,6 +10,7 @@
 #include "carla/NonCopyable.h"
 #include "carla/RecurrentSharedFuture.h"
 #include "carla/client/Timestamp.h"
+#include "carla/client/WorldSnapshot.h"
 #include "carla/client/detail/CachedActorList.h"
 #include "carla/client/detail/CallbackList.h"
 #include "carla/client/detail/EpisodeState.h"
@@ -51,15 +52,17 @@ namespace detail {
       _actors.Insert(std::move(actor));
     }
 
+    boost::optional<rpc::Actor> GetActorById(ActorId id);
+
     std::vector<rpc::Actor> GetActorsById(const std::vector<ActorId> &actor_ids);
 
     std::vector<rpc::Actor> GetActors();
 
-    boost::optional<Timestamp> WaitForState(time_duration timeout) {
-      return _timestamp.WaitFor(timeout);
+    boost::optional<WorldSnapshot> WaitForState(time_duration timeout) {
+      return _snapshot.WaitFor(timeout);
     }
 
-    void RegisterOnTickEvent(std::function<void(Timestamp)> callback) {
+    void RegisterOnTickEvent(std::function<void(WorldSnapshot)> callback) {
       _on_tick_callbacks.RegisterCallback(std::move(callback));
     }
 
@@ -75,9 +78,9 @@ namespace detail {
 
     CachedActorList _actors;
 
-    CallbackList<Timestamp> _on_tick_callbacks;
+    CallbackList<WorldSnapshot> _on_tick_callbacks;
 
-    RecurrentSharedFuture<Timestamp> _timestamp;
+    RecurrentSharedFuture<WorldSnapshot> _snapshot;
 
     const streaming::Token _token;
   };

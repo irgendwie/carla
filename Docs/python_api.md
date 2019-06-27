@@ -22,7 +22,7 @@
 - `show_recorder_actors_blocked(string filename, float min_time, float min_distance)`
 - `set_replayer_speed(float time_factor)`
 - `apply_batch(commands, do_tick=False)`
-- `apply_batch_sync(commands, do_tick=False) -> list(carla.command.Response)`
+- `apply_batch_sync(commands, do_tick=False)` -> list(carla.command.Response)
 
 ## `carla.World`
 
@@ -35,10 +35,12 @@
 - `apply_settings(world_settings)`
 - `get_weather()`
 - `set_weather(weather_parameters)`
+- `get_snapshot() -> carla.WorldSnapshot`
+- `get_actor(actor_id) -> carla.Actor`
 - `get_actors(actor_ids=None) -> carla.ActorList`
 - `spawn_actor(blueprint, transform, attach_to=None)`
-- `try_spawn_actor(blueprint, transform, attach_to=None)`
-- `wait_for_tick(seconds=1.0)`
+- `try_spawn_actor(blueprint, transform, attach_to=None, attachment_type=carla.AttachmentType.Rigid)`
+- `wait_for_tick(seconds=1.0) -> carla.WorldSnapshot`
 - `on_tick(callback)`
 - `tick()`
 
@@ -48,6 +50,21 @@
 - `no_rendering_mode`
 - `__eq__(other)`
 - `__ne__(other)`
+
+## `carla.WorldSnapshot`
+
+- `id`
+- `timestamp`
+- `frame_count [deprecated: use timestamp]`
+- `elapsed_seconds [deprecated: use timestamp]`
+- `delta_seconds [deprecated: use timestamp]`
+- `platform_timestamp [deprecated: use timestamp]`
+- `has_actor(actor_id) -> bool`
+- `find(actor_id) -> carla.ActorSnapshot`
+- `__len()__`
+- `__iter()__`
+- `__eq(other)__`
+- `__ne(other)__`
 
 ## `carla.DebugHelper`
 
@@ -127,6 +144,16 @@
 - `destroy()`
 - `__str__()`
 
+## `carla.ActorSnapshot`
+
+- `id`
+- `get_location()`
+- `get_transform()`
+- `get_velocity()`
+- `get_angular_velocity()`
+- `get_acceleration()`
+- `__str__()`
+
 ## `carla.Vehicle(carla.Actor)`
 
 - `bounding_box`
@@ -140,7 +167,11 @@
 - `is_at_traffic_light()`
 - `get_traffic_light()`
 
-## `carla.TrafficLight(carla.Actor)`
+## `carla.TrafficSign(carla.Actor)`
+
+- `trigger_volume -> carla.BoundingBox`
+
+## `carla.TrafficLight(carla.TrafficSign)`
 
 - `state`
 - `set_state(traffic_light_state)`
@@ -234,8 +265,9 @@
 
 - `tire_friction`
 - `damping_rate`
-- `steer_angle`
-- `disable_steering`
+- `max_steer_angle`
+- `radius`
+- `position`
 - `__eq__(other)`
 - `__ne__(other)`
 
@@ -328,28 +360,30 @@
 
 ## `carla.LaneMarking`
 
-- `type -> carla.LaneMarking`
-- `color -> carla.RoadMarkColor`
-- `lane_change -> carla.LaneChange`
+- `type` -> carla.LaneMarking
+- `color` -> carla.RoadMarkColor
+- `lane_change` -> carla.LaneChange
 - `width`
 
 ## `carla.Waypoint`
 
 - `id`
 - `transform`
-- `is_intersection`
+- `is_intersection` _deprecated, use `is_junction` instead_
+- `is_junction`
 - `lane_width`
 - `road_id`
 - `section_id`
 - `lane_id`
+- `junction_id`
 - `s`
-- `lane_change -> carla.LaneChange`
-- `lane_type -> carla.LaneType`
-- `right_lane_marking -> carla.LaneMarking`
-- `left_lane_marking -> carla.LaneMarking`
-- `next(distance) -> list(carla.Waypoint)`
-- `get_right_lane() -> carla.Waypoint`
-- `get_left_lane() -> carla.Waypoint`
+- `lane_change` -> carla.LaneChange
+- `lane_type` -> carla.LaneType
+- `right_lane_marking` -> carla.LaneMarking
+- `left_lane_marking` -> carla.LaneMarking
+- `next(distance)` -> list(carla.Waypoint)
+- `get_right_lane()` -> carla.Waypoint
+- `get_left_lane()` -> carla.Waypoint
 
 ## `carla.WeatherParameters`
 
@@ -364,6 +398,7 @@
 
 Static presets
 
+- `carla.WeatherParameters.Default`
 - `carla.WeatherParameters.ClearNoon`
 - `carla.WeatherParameters.CloudyNoon`
 - `carla.WeatherParameters.WetNoon`
@@ -466,6 +501,11 @@ Static presets
 - `Depth`
 - `LogarithmicDepth`
 - `CityScapesPalette`
+
+## `carla.AttachmentType`
+
+- `Rigid`
+- `SpringArm`
 
 ## `carla.ActorAttributeType`
 

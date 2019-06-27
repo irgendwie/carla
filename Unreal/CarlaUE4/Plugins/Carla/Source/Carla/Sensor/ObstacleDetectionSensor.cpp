@@ -11,19 +11,12 @@
 #include "Carla/Actor/ActorRegistry.h"
 #include "Carla/Game/CarlaEpisode.h"
 #include "Carla/Game/CarlaGameInstance.h"
-#include "Carla/Game/TheNewCarlaGameModeBase.h"
+#include "Carla/Game/CarlaGameModeBase.h"
 
 AObstacleDetectionSensor::AObstacleDetectionSensor(const FObjectInitializer &ObjectInitializer)
   : Super(ObjectInitializer)
 {
   PrimaryActorTick.bCanEverTick = true;
-
-  auto MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RootComponent"));
-  MeshComp->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
-  MeshComp->bHiddenInGame = true;
-  MeshComp->CastShadow = false;
-  MeshComp->PostPhysicsComponentTick.bCanEverTick = false;
-  RootComponent = MeshComp;
 }
 
 FActorDefinition AObstacleDetectionSensor::GetSensorDefinition()
