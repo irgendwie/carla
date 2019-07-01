@@ -147,7 +147,7 @@ namespace detail {
     navigation->UnregisterWalker(walker->GetId(), controller.GetId());
   }
 
-  geom::Location Simulator::GetRandomLocationFromNavigation() {
+  boost::optional<geom::Location> Simulator::GetRandomLocationFromNavigation() {
     DEBUG_ASSERT(_episode != nullptr);
     auto navigation = _episode->CreateNavigationIfMissing();
     DEBUG_ASSERT(navigation != nullptr);
