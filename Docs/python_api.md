@@ -48,6 +48,7 @@
 
 - `synchronous_mode`
 - `no_rendering_mode`
+- `fixed_delta_seconds`
 - `__eq__(other)`
 - `__ne__(other)`
 
