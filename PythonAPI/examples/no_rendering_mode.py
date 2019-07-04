@@ -1037,7 +1037,7 @@ class ModuleWorld(object):
                 traffic_lights.append(actor_with_transform)
             elif 'speed_limit' in actor.type_id:
                 speed_limits.append(actor_with_transform)
-            elif 'walker' in actor.type_id:
+            elif 'walker.pedestrian' in actor.type_id:
                 walkers.append(actor_with_transform)
 
         info_text = []
