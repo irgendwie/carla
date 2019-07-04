@@ -193,6 +193,8 @@ class World(object):
         self.lane_invasion_sensor = LaneInvasionSensor(self.player, self.hud)
         self.gnss_sensor = GnssSensor(self.player)
         self.camera_manager = CameraManager(self.player, self.hud)
+        bpsds = self.world.get_blueprint_library().find('sensor.other.safe_distance')
+        self.world.spawn_actor(bpsds, carla.Transform(), attach_to=self.player)
         self.camera_manager.transform_index = cam_pos_index
         self.camera_manager.set_sensor(cam_index, notify=False)
         actor_type = get_actor_display_name(self.player)
